@@ -7,6 +7,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import Icon from '@/components/ui/icon';
 import { Badge } from '@/components/ui/badge';
+import OrdersStats from '@/components/OrdersStats';
 
 type OrderStatus = 'completed' | 'processing' | 'pending';
 
@@ -27,6 +28,8 @@ export default function OrdersList({ onViewOnMap }: OrdersListProps = {}) {
     { id: '001', phone: '+7 900 123-45-67', fromAddress: 'ул. Ленина, 10', toAddress: 'ул. Пушкина, 25', status: 'processing' },
     { id: '002', phone: '+7 900 234-56-78', fromAddress: 'пр. Мира, 5', toAddress: 'ул. Гагарина, 12', status: 'pending' },
     { id: '003', phone: '+7 900 345-67-89', fromAddress: 'ул. Советская, 3', toAddress: 'пр. Победы, 18', status: 'completed' },
+    { id: '004', phone: '+7 900 456-78-90', fromAddress: 'ул. Ломоносова, 7', toAddress: 'ул. Кирова, 22', status: 'completed' },
+    { id: '005', phone: '+7 900 567-89-01', fromAddress: 'пр. Ленина, 45', toAddress: 'ул. Жукова, 8', status: 'completed' },
   ]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingOrder, setEditingOrder] = useState<Order | null>(null);
@@ -88,9 +91,19 @@ export default function OrdersList({ onViewOnMap }: OrdersListProps = {}) {
   };
 
   const activeOrders = orders.filter(order => order.status !== 'completed');
+  const completedCount = orders.filter(order => order.status === 'completed').length;
+  const processingCount = orders.filter(order => order.status === 'processing').length;
+  const pendingCount = orders.filter(order => order.status === 'pending').length;
 
   return (
     <div className="space-y-4">
+      <OrdersStats 
+        total={orders.length}
+        completed={completedCount}
+        processing={processingCount}
+        pending={pendingCount}
+      />
+      
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-heading font-bold">Активные заказы</h2>
         <Dialog open={isDialogOpen} onOpenChange={(open) => {
