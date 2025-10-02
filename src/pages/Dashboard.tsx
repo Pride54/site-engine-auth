@@ -14,6 +14,12 @@ interface DashboardProps {
 
 export default function Dashboard({ onLogout }: DashboardProps) {
   const [activeTab, setActiveTab] = useState('orders');
+  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
+
+  const handleViewOnMap = (orderId: string) => {
+    setSelectedOrderId(orderId);
+    setActiveTab('map');
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -62,7 +68,7 @@ export default function Dashboard({ onLogout }: DashboardProps) {
           </TabsList>
 
           <TabsContent value="orders" className="mt-0">
-            <OrdersList />
+            <OrdersList onViewOnMap={handleViewOnMap} />
           </TabsContent>
 
           <TabsContent value="drivers" className="mt-0">
@@ -70,7 +76,7 @@ export default function Dashboard({ onLogout }: DashboardProps) {
           </TabsContent>
 
           <TabsContent value="map" className="mt-0">
-            <MapView />
+            <MapView selectedOrderId={selectedOrderId} />
           </TabsContent>
 
           <TabsContent value="completed" className="mt-0">

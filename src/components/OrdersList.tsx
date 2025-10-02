@@ -18,7 +18,11 @@ interface Order {
   status: OrderStatus;
 }
 
-export default function OrdersList() {
+interface OrdersListProps {
+  onViewOnMap?: (orderId: string) => void;
+}
+
+export default function OrdersList({ onViewOnMap }: OrdersListProps = {}) {
   const [orders, setOrders] = useState<Order[]>([
     { id: '001', phone: '+7 900 123-45-67', fromAddress: 'ул. Ленина, 10', toAddress: 'ул. Пушкина, 25', status: 'processing' },
     { id: '002', phone: '+7 900 234-56-78', fromAddress: 'пр. Мира, 5', toAddress: 'ул. Гагарина, 12', status: 'pending' },
@@ -195,6 +199,16 @@ export default function OrdersList() {
                     <Badge className={statusConfig.className}>
                       {statusConfig.label}
                     </Badge>
+                    {onViewOnMap && (
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        onClick={() => onViewOnMap(order.id)}
+                        title="Показать на карте"
+                      >
+                        <Icon name="MapPin" size={18} className="text-primary" />
+                      </Button>
+                    )}
                     <Button variant="ghost" size="icon" onClick={() => handleEdit(order)}>
                       <Icon name="Edit" size={18} />
                     </Button>

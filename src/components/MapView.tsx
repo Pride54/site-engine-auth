@@ -21,7 +21,11 @@ interface Driver {
   status: 'active' | 'inactive';
 }
 
-export default function MapView() {
+interface MapViewProps {
+  selectedOrderId?: string | null;
+}
+
+export default function MapView({ selectedOrderId }: MapViewProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
@@ -61,6 +65,15 @@ export default function MapView() {
       status: 'active'
     }
   ];
+
+  useEffect(() => {
+    if (selectedOrderId) {
+      const order = demoOrders.find(o => o.id === selectedOrderId);
+      if (order) {
+        setSelectedOrder(order);
+      }
+    }
+  }, [selectedOrderId]);
 
   useEffect(() => {
     const script = document.createElement('script');
