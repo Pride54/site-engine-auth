@@ -1,0 +1,165 @@
+import { useState } from 'react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import Icon from '@/components/ui/icon';
+
+interface Driver {
+  id: string;
+  name: string;
+  phone: string;
+  vehicle: string;
+  status: 'active' | 'inactive';
+  ordersCount: number;
+}
+
+export default function DriversList() {
+  const [drivers, setDrivers] = useState<Driver[]>([
+    { id: '1', name: 'Иванов Иван', phone: '+7 900 111-11-11', vehicle: 'Toyota Camry', status: 'active', ordersCount: 5 },
+    { id: '2', name: 'Петров Петр', phone: '+7 900 222-22-22', vehicle: 'Ford Transit', status: 'active', ordersCount: 3 },
+    { id: '3', name: 'Сидоров Сидор', phone: '+7 900 333-33-33', vehicle: 'Mercedes Sprinter', status: 'inactive', ordersCount: 0 },
+  ]);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [formData, setFormData] = useState({
+    name: '',
+    phone: '',
+    vehicle: ''
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const newDriver: Driver = {
+      id: String(drivers.length + 1),
+      ...formData,
+      status: 'inactive',
+      ordersCount: 0
+    };
+    setDrivers([...drivers, newDriver]);
+    setFormData({ name: '', phone: '', vehicle: '' });
+    setIsDialogOpen(false);
+  };
+
+  const toggleDriverStatus = (id: string) => {
+    setDrivers(drivers.map(driver => 
+      driver.id === id 
+        ? { ...driver, status: driver.status === 'active' ? 'inactive' : 'active' as 'active' | 'inactive' }
+        : driver
+    ));
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-heading font-bold">Водители</h2>
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogTrigger asChild>
+            <Button className="gap-2 bg-primary hover:bg-primary/90 text-primary-foreground">
+              <Icon name="Plus" size={18} />
+              Добавить водителя
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Новый водитель</DialogTitle>
+              <DialogDescription>
+                Добавьте информацию о водителе
+              </DialogDescription>
+            </DialogHeader>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="name">ФИО</Label>
+                <Input
+                  id="name"
+                  placeholder="Иванов Иван Иванович"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="driverPhone">Телефон</Label>
+                <Input
+                  id="driverPhone"
+                  placeholder="+7 900 123-45-67"
+                  value={formData.phone}
+                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="vehicle">Транспорт</Label>
+                <Input
+                  id="vehicle"
+                  placeholder="Toyota Camry"
+                  value={formData.vehicle}
+                  onChange={(e) => setFormData({ ...formData, vehicle: e.target.value })}
+                  required
+                />
+              </div>
+              <div className="flex gap-2 pt-2">
+                <Button type="submit" className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground">
+                  Добавить
+                </Button>
+                <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)} className="flex-1">
+                  Отмена
+                </Button>
+              </div>
+            </form>
+          </DialogContent>
+        </Dialog>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {drivers.map((driver) => (
+          <Card key={driver.id} className="hover:shadow-md transition-shadow">
+            <CardContent className="p-4 space-y-3">
+              <div className="flex items-start justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center">
+                    <Icon name="User" size={24} className="text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="font-heading font-semibold">{driver.name}</h3>
+                    <Badge 
+                      variant={driver.status === 'active' ? 'default' : 'secondary'}
+                      className={driver.status === 'active' ? 'bg-success text-white' : ''}
+                    >
+                      {driver.status === 'active' ? 'Активен' : 'Неактивен'}
+                    </Badge>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="space-y-2 text-sm">
+                <div className="flex items-center gap-2">
+                  <Icon name="Phone" size={14} className="text-muted-foreground" />
+                  <span>{driver.phone}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Icon name="Car" size={14} className="text-muted-foreground" />
+                  <span>{driver.vehicle}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Icon name="Package" size={14} className="text-muted-foreground" />
+                  <span>Заказов: {driver.ordersCount}</span>
+                </div>
+              </div>
+
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="w-full"
+                onClick={() => toggleDriverStatus(driver.id)}
+              >
+                {driver.status === 'active' ? 'Деактивировать' : 'Активировать'}
+              </Button>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    </div>
+  );
+}
