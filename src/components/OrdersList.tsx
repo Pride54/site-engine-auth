@@ -17,6 +17,14 @@ interface Order {
   fromAddress: string;
   toAddress: string;
   status: OrderStatus;
+  driverId?: string;
+  driverName?: string;
+}
+
+interface Driver {
+  id: string;
+  name: string;
+  status: 'active' | 'inactive';
 }
 
 interface OrdersListProps {
@@ -27,7 +35,7 @@ interface OrdersListProps {
 
 export default function OrdersList({ onViewOnMap, onOrdersChange, onArchivedOrdersChange }: OrdersListProps = {}) {
   const [orders, setOrders] = useState<Order[]>([
-    { id: '001', phone: '+7 900 123-45-67', fromAddress: 'ул. Ленина, 10', toAddress: 'ул. Пушкина, 25', status: 'processing' },
+    { id: '001', phone: '+7 900 123-45-67', fromAddress: 'ул. Ленина, 10', toAddress: 'ул. Пушкина, 25', status: 'processing', driverId: '1', driverName: 'Иванов Иван' },
     { id: '002', phone: '+7 900 234-56-78', fromAddress: 'пр. Мира, 5', toAddress: 'ул. Гагарина, 12', status: 'pending' },
     { id: '003', phone: '+7 900 345-67-89', fromAddress: 'ул. Советская, 3', toAddress: 'пр. Победы, 18', status: 'delivered' },
     { id: '004', phone: '+7 900 456-78-90', fromAddress: 'ул. Ломоносова, 7', toAddress: 'ул. Кирова, 22', status: 'completed' },
@@ -35,6 +43,15 @@ export default function OrdersList({ onViewOnMap, onOrdersChange, onArchivedOrde
   ]);
   const [archivedOrders, setArchivedOrders] = useState<Order[]>([]);
   const [showArchive, setShowArchive] = useState(false);
+  const [assignDialogOpen, setAssignDialogOpen] = useState(false);
+  const [orderToAssign, setOrderToAssign] = useState<Order | null>(null);
+  const [selectedDriverId, setSelectedDriverId] = useState<string>('');
+
+  const availableDrivers: Driver[] = [
+    { id: '1', name: 'Иванов Иван', status: 'active' },
+    { id: '2', name: 'Петров Петр', status: 'active' },
+    { id: '3', name: 'Сидоров Сидор', status: 'inactive' },
+  ];
 
   const updateOrders = (newOrders: Order[]) => {
     setOrders(newOrders);
@@ -126,6 +143,34 @@ export default function OrdersList({ onViewOnMap, onOrdersChange, onArchivedOrde
       updateOrders([...orders, orderToUnarchive]);
       updateArchivedOrders(archivedOrders.filter(order => order.id !== id));
     }
+  };
+
+  const handleOpenAssignDialog = (order: Order) => {
+    setOrderToAssign(order);
+    setSelectedDriverId(order.driverId || '');
+    setAssignDialogOpen(true);
+  };
+
+  const handleAssignDriver = () => {
+    if (orderToAssign && selectedDriverId) {
+      const driver = availableDrivers.find(d => d.id === selectedDriverId);
+      updateOrders(orders.map(order => 
+        order.id === orderToAssign.id 
+          ? { ...order, driverId: selectedDriverId, driverName: driver?.name }
+          : order
+      ));
+      setAssignDialogOpen(false);
+      setOrderToAssign(null);
+      setSelectedDriverId('');
+    }
+  };
+
+  const handleUnassignDriver = (orderId: string) => {
+    updateOrders(orders.map(order => 
+      order.id === orderId 
+        ? { ...order, driverId: undefined, driverName: undefined }
+        : order
+    ));
   };
 
   const resetForm = () => {
@@ -245,6 +290,67 @@ export default function OrdersList({ onViewOnMap, onOrdersChange, onArchivedOrde
         </div>
       </div>
 
+      {/* Диалог назначения водителя */}
+      <Dialog open={assignDialogOpen} onOpenChange={setAssignDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Назначить водителя</DialogTitle>
+            <DialogDescription>
+              Выберите водителя для заказа #{orderToAssign?.id}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Водитель</Label>
+              <Select value={selectedDriverId} onValueChange={setSelectedDriverId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Выберите водителя" />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableDrivers.filter(d => d.status === 'active').map((driver) => (
+                    <SelectItem key={driver.id} value={driver.id}>
+                      <div className="flex items-center gap-2">
+                        <Icon name="User" size={14} />
+                        {driver.name}
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            {orderToAssign && (
+              <div className="bg-muted/50 rounded-lg p-3 space-y-2 text-sm">
+                <div className="flex items-center gap-2">
+                  <Icon name="MapPin" size={14} className="text-muted-foreground" />
+                  <span className="truncate">{orderToAssign.fromAddress}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Icon name="Navigation" size={14} className="text-muted-foreground" />
+                  <span className="truncate">{orderToAssign.toAddress}</span>
+                </div>
+              </div>
+            )}
+            <div className="flex gap-2 pt-2">
+              <Button 
+                onClick={handleAssignDriver} 
+                disabled={!selectedDriverId}
+                className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground"
+              >
+                Назначить
+              </Button>
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={() => setAssignDialogOpen(false)} 
+                className="flex-1"
+              >
+                Отмена
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <div className="space-y-3">
         {showArchive ? (
           archivedOrders.length === 0 ? (
@@ -320,19 +426,47 @@ export default function OrdersList({ onViewOnMap, onOrdersChange, onArchivedOrde
                       </div>
                     </div>
                     
-                    <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-3 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <Icon name="Phone" size={16} className="text-muted-foreground flex-shrink-0" />
-                        <span className="text-sm truncate">{order.phone}</span>
+                    <div className="flex-1 space-y-2 min-w-0">
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div className="flex items-center gap-2">
+                          <Icon name="Phone" size={16} className="text-muted-foreground flex-shrink-0" />
+                          <span className="text-sm truncate">{order.phone}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Icon name="MapPin" size={16} className="text-muted-foreground flex-shrink-0" />
+                          <span className="text-sm truncate">{order.fromAddress}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Icon name="Navigation" size={16} className="text-muted-foreground flex-shrink-0" />
+                          <span className="text-sm truncate">{order.toAddress}</span>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <Icon name="MapPin" size={16} className="text-muted-foreground flex-shrink-0" />
-                        <span className="text-sm truncate">{order.fromAddress}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Icon name="Navigation" size={16} className="text-muted-foreground flex-shrink-0" />
-                        <span className="text-sm truncate">{order.toAddress}</span>
-                      </div>
+                      {order.driverId ? (
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline" className="gap-1">
+                            <Icon name="User" size={12} />
+                            {order.driverName}
+                          </Badge>
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            className="h-6 px-2 text-xs text-muted-foreground hover:text-error"
+                            onClick={() => handleUnassignDriver(order.id)}
+                          >
+                            <Icon name="X" size={12} />
+                          </Button>
+                        </div>
+                      ) : (
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          className="h-7 text-xs gap-1 w-fit"
+                          onClick={() => handleOpenAssignDialog(order)}
+                        >
+                          <Icon name="UserPlus" size={12} />
+                          Назначить водителя
+                        </Button>
+                      )}
                     </div>
 
                     <div className="flex items-center gap-2 flex-shrink-0">
