@@ -9,7 +9,7 @@ import Icon from '@/components/ui/icon';
 import { Badge } from '@/components/ui/badge';
 import OrdersStats from '@/components/OrdersStats';
 
-type OrderStatus = 'completed' | 'processing' | 'pending';
+type OrderStatus = 'delivered' | 'completed' | 'processing' | 'pending';
 
 interface Order {
   id: string;
@@ -27,7 +27,7 @@ export default function OrdersList({ onViewOnMap }: OrdersListProps = {}) {
   const [orders, setOrders] = useState<Order[]>([
     { id: '001', phone: '+7 900 123-45-67', fromAddress: 'ул. Ленина, 10', toAddress: 'ул. Пушкина, 25', status: 'processing' },
     { id: '002', phone: '+7 900 234-56-78', fromAddress: 'пр. Мира, 5', toAddress: 'ул. Гагарина, 12', status: 'pending' },
-    { id: '003', phone: '+7 900 345-67-89', fromAddress: 'ул. Советская, 3', toAddress: 'пр. Победы, 18', status: 'completed' },
+    { id: '003', phone: '+7 900 345-67-89', fromAddress: 'ул. Советская, 3', toAddress: 'пр. Победы, 18', status: 'delivered' },
     { id: '004', phone: '+7 900 456-78-90', fromAddress: 'ул. Ломоносова, 7', toAddress: 'ул. Кирова, 22', status: 'completed' },
     { id: '005', phone: '+7 900 567-89-01', fromAddress: 'пр. Ленина, 45', toAddress: 'ул. Жукова, 8', status: 'completed' },
   ]);
@@ -42,6 +42,8 @@ export default function OrdersList({ onViewOnMap }: OrdersListProps = {}) {
 
   const getStatusConfig = (status: OrderStatus) => {
     switch (status) {
+      case 'delivered':
+        return { label: 'Доставлено', className: 'bg-blue-500 text-white hover:bg-blue-600' };
       case 'completed':
         return { label: 'Выполнено', className: 'bg-success text-white hover:bg-success/90' };
       case 'processing':
@@ -90,8 +92,8 @@ export default function OrdersList({ onViewOnMap }: OrdersListProps = {}) {
     setIsDialogOpen(false);
   };
 
-  const activeOrders = orders.filter(order => order.status !== 'completed');
-  const completedCount = orders.filter(order => order.status === 'completed').length;
+  const activeOrders = orders.filter(order => order.status !== 'completed' && order.status !== 'delivered');
+  const completedCount = orders.filter(order => order.status === 'completed' || order.status === 'delivered').length;
   const processingCount = orders.filter(order => order.status === 'processing').length;
   const pendingCount = orders.filter(order => order.status === 'pending').length;
 
@@ -164,6 +166,7 @@ export default function OrdersList({ onViewOnMap }: OrdersListProps = {}) {
                     <SelectItem value="pending">Не выполнено</SelectItem>
                     <SelectItem value="processing">В обработке</SelectItem>
                     <SelectItem value="completed">Выполнено</SelectItem>
+                    <SelectItem value="delivered">Доставлено</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
