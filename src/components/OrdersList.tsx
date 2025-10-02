@@ -31,6 +31,8 @@ export default function OrdersList({ onViewOnMap }: OrdersListProps = {}) {
     { id: '004', phone: '+7 900 456-78-90', fromAddress: 'ул. Ломоносова, 7', toAddress: 'ул. Кирова, 22', status: 'completed' },
     { id: '005', phone: '+7 900 567-89-01', fromAddress: 'пр. Ленина, 45', toAddress: 'ул. Жукова, 8', status: 'completed' },
   ]);
+  const [archivedOrders, setArchivedOrders] = useState<Order[]>([]);
+  const [showArchive, setShowArchive] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingOrder, setEditingOrder] = useState<Order | null>(null);
   const [formData, setFormData] = useState({
@@ -86,6 +88,22 @@ export default function OrdersList({ onViewOnMap }: OrdersListProps = {}) {
     setOrders(orders.filter(order => order.id !== id));
   };
 
+  const handleArchive = (id: string) => {
+    const orderToArchive = orders.find(order => order.id === id);
+    if (orderToArchive) {
+      setArchivedOrders([...archivedOrders, orderToArchive]);
+      setOrders(orders.filter(order => order.id !== id));
+    }
+  };
+
+  const handleUnarchive = (id: string) => {
+    const orderToUnarchive = archivedOrders.find(order => order.id === id);
+    if (orderToUnarchive) {
+      setOrders([...orders, orderToUnarchive]);
+      setArchivedOrders(archivedOrders.filter(order => order.id !== id));
+    }
+  };
+
   const resetForm = () => {
     setFormData({ phone: '', fromAddress: '', toAddress: '', status: 'pending' });
     setEditingOrder(null);
@@ -107,7 +125,26 @@ export default function OrdersList({ onViewOnMap }: OrdersListProps = {}) {
       />
       
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-heading font-bold">Активные заказы</h2>
+        <div className="flex items-center gap-3">
+          <h2 className="text-2xl font-heading font-bold">
+            {showArchive ? 'Архив заказов' : 'Активные заказы'}
+          </h2>
+          <Badge variant="secondary" className="text-xs">
+            {showArchive ? archivedOrders.length : activeOrders.length}
+          </Badge>
+        </div>
+        <div className="flex gap-2">
+          <Button 
+            variant="outline" 
+            onClick={() => setShowArchive(!showArchive)}
+            className="gap-2"
+          >
+            <Icon name={showArchive ? "List" : "Archive"} size={18} />
+            {showArchive ? 'Активные' : 'Архив'}
+            {!showArchive && archivedOrders.length > 0 && (
+              <Badge variant="secondary" className="ml-1">{archivedOrders.length}</Badge>
+            )}
+          </Button>
         <Dialog open={isDialogOpen} onOpenChange={(open) => {
           setIsDialogOpen(open);
           if (!open) resetForm();
@@ -184,59 +221,130 @@ export default function OrdersList({ onViewOnMap }: OrdersListProps = {}) {
       </div>
 
       <div className="space-y-3">
-        {activeOrders.map((order) => {
-          const statusConfig = getStatusConfig(order.status);
-          return (
-            <Card key={order.id} className="hover:shadow-md transition-shadow">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-4">
-                  <div className="flex-shrink-0">
-                    <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center">
-                      <span className="font-heading font-bold text-primary">#{order.id}</span>
-                    </div>
-                  </div>
-                  
-                  <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-3 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <Icon name="Phone" size={16} className="text-muted-foreground flex-shrink-0" />
-                      <span className="text-sm truncate">{order.phone}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Icon name="MapPin" size={16} className="text-muted-foreground flex-shrink-0" />
-                      <span className="text-sm truncate">{order.fromAddress}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Icon name="Navigation" size={16} className="text-muted-foreground flex-shrink-0" />
-                      <span className="text-sm truncate">{order.toAddress}</span>
-                    </div>
-                  </div>
+        {showArchive ? (
+          archivedOrders.length === 0 ? (
+            <Card>
+              <CardContent className="p-12 text-center">
+                <Icon name="Archive" size={48} className="mx-auto text-muted-foreground mb-3" />
+                <h3 className="font-heading font-semibold text-lg mb-2">Архив пуст</h3>
+                <p className="text-muted-foreground text-sm">Здесь будут заказы, которые вы отправите в архив</p>
+              </CardContent>
+            </Card>
+          ) : (
+            archivedOrders.map((order) => {
+              const statusConfig = getStatusConfig(order.status);
+              return (
+                <Card key={order.id} className="hover:shadow-md transition-shadow opacity-75">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-4">
+                      <div className="flex-shrink-0">
+                        <div className="w-12 h-12 bg-muted rounded-xl flex items-center justify-center">
+                          <span className="font-heading font-bold text-muted-foreground">#{order.id}</span>
+                        </div>
+                      </div>
+                      
+                      <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-3 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <Icon name="Phone" size={16} className="text-muted-foreground flex-shrink-0" />
+                          <span className="text-sm truncate">{order.phone}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Icon name="MapPin" size={16} className="text-muted-foreground flex-shrink-0" />
+                          <span className="text-sm truncate">{order.fromAddress}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Icon name="Navigation" size={16} className="text-muted-foreground flex-shrink-0" />
+                          <span className="text-sm truncate">{order.toAddress}</span>
+                        </div>
+                      </div>
 
-                  <div className="flex items-center gap-2 flex-shrink-0">
-                    <Badge className={statusConfig.className}>
-                      {statusConfig.label}
-                    </Badge>
-                    {onViewOnMap && (
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        <Badge variant="secondary">
+                          {statusConfig.label}
+                        </Badge>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          onClick={() => handleUnarchive(order.id)}
+                          title="Восстановить"
+                        >
+                          <Icon name="ArchiveRestore" size={18} className="text-primary" />
+                        </Button>
+                        <Button variant="ghost" size="icon" onClick={() => {
+                          setArchivedOrders(archivedOrders.filter(o => o.id !== order.id));
+                        }}>
+                          <Icon name="Trash2" size={18} className="text-error" />
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })
+          )
+        ) : (
+          activeOrders.map((order) => {
+            const statusConfig = getStatusConfig(order.status);
+            return (
+              <Card key={order.id} className="hover:shadow-md transition-shadow">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-4">
+                    <div className="flex-shrink-0">
+                      <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center">
+                        <span className="font-heading font-bold text-primary">#{order.id}</span>
+                      </div>
+                    </div>
+                    
+                    <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-3 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <Icon name="Phone" size={16} className="text-muted-foreground flex-shrink-0" />
+                        <span className="text-sm truncate">{order.phone}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Icon name="MapPin" size={16} className="text-muted-foreground flex-shrink-0" />
+                        <span className="text-sm truncate">{order.fromAddress}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Icon name="Navigation" size={16} className="text-muted-foreground flex-shrink-0" />
+                        <span className="text-sm truncate">{order.toAddress}</span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <Badge className={statusConfig.className}>
+                        {statusConfig.label}
+                      </Badge>
+                      {onViewOnMap && (
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          onClick={() => onViewOnMap(order.id)}
+                          title="Показать на карте"
+                        >
+                          <Icon name="MapPin" size={18} className="text-primary" />
+                        </Button>
+                      )}
+                      <Button variant="ghost" size="icon" onClick={() => handleEdit(order)}>
+                        <Icon name="Edit" size={18} />
+                      </Button>
                       <Button 
                         variant="ghost" 
                         size="icon" 
-                        onClick={() => onViewOnMap(order.id)}
-                        title="Показать на карте"
+                        onClick={() => handleArchive(order.id)}
+                        title="В архив"
                       >
-                        <Icon name="MapPin" size={18} className="text-primary" />
+                        <Icon name="Archive" size={18} className="text-muted-foreground" />
                       </Button>
-                    )}
-                    <Button variant="ghost" size="icon" onClick={() => handleEdit(order)}>
-                      <Icon name="Edit" size={18} />
-                    </Button>
-                    <Button variant="ghost" size="icon" onClick={() => handleDelete(order.id)}>
-                      <Icon name="Trash2" size={18} className="text-error" />
-                    </Button>
+                      <Button variant="ghost" size="icon" onClick={() => handleDelete(order.id)}>
+                        <Icon name="Trash2" size={18} className="text-error" />
+                      </Button>
+                    </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
+                </CardContent>
+              </Card>
+            );
+          })
+        )}
       </div>
     </div>
   );
