@@ -12,22 +12,24 @@ interface Driver {
   name: string;
   phone: string;
   vehicle: string;
+  plateNumber: string;
   status: 'active' | 'inactive';
   ordersCount: number;
 }
 
 export default function DriversList() {
   const [drivers, setDrivers] = useState<Driver[]>([
-    { id: '1', name: 'Иванов Иван', phone: '+7 900 111-11-11', vehicle: 'Toyota Camry', status: 'active', ordersCount: 5 },
-    { id: '2', name: 'Петров Петр', phone: '+7 900 222-22-22', vehicle: 'Ford Transit', status: 'active', ordersCount: 3 },
-    { id: '3', name: 'Сидоров Сидор', phone: '+7 900 333-33-33', vehicle: 'Mercedes Sprinter', status: 'inactive', ordersCount: 0 },
+    { id: '1', name: 'Иванов Иван', phone: '+7 900 111-11-11', vehicle: 'Toyota Camry', plateNumber: 'А123БВ 777', status: 'active', ordersCount: 5 },
+    { id: '2', name: 'Петров Петр', phone: '+7 900 222-22-22', vehicle: 'Ford Transit', plateNumber: 'К456МН 197', status: 'active', ordersCount: 3 },
+    { id: '3', name: 'Сидоров Сидор', phone: '+7 900 333-33-33', vehicle: 'Mercedes Sprinter', plateNumber: 'Т789ОР 199', status: 'inactive', ordersCount: 0 },
   ]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingDriver, setEditingDriver] = useState<Driver | null>(null);
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
-    vehicle: ''
+    vehicle: '',
+    plateNumber: ''
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -47,7 +49,7 @@ export default function DriversList() {
       };
       setDrivers([...drivers, newDriver]);
     }
-    setFormData({ name: '', phone: '', vehicle: '' });
+    setFormData({ name: '', phone: '', vehicle: '', plateNumber: '' });
     setEditingDriver(null);
     setIsDialogOpen(false);
   };
@@ -57,7 +59,8 @@ export default function DriversList() {
     setFormData({
       name: driver.name,
       phone: driver.phone,
-      vehicle: driver.vehicle
+      vehicle: driver.vehicle,
+      plateNumber: driver.plateNumber
     });
     setIsDialogOpen(true);
   };
@@ -65,7 +68,7 @@ export default function DriversList() {
   const handleCloseDialog = () => {
     setIsDialogOpen(false);
     setEditingDriver(null);
-    setFormData({ name: '', phone: '', vehicle: '' });
+    setFormData({ name: '', phone: '', vehicle: '', plateNumber: '' });
   };
 
   const toggleDriverStatus = (id: string) => {
@@ -125,6 +128,18 @@ export default function DriversList() {
                   required
                 />
               </div>
+              <div className="space-y-2">
+                <Label htmlFor="plateNumber">Госномер</Label>
+                <Input
+                  id="plateNumber"
+                  placeholder="А123БВ 777"
+                  value={formData.plateNumber}
+                  onChange={(e) => setFormData({ ...formData, plateNumber: e.target.value.toUpperCase() })}
+                  required
+                  className="font-mono text-center text-lg tracking-wider"
+                  maxLength={20}
+                />
+              </div>
               <div className="flex gap-2 pt-2">
                 <Button type="submit" className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground">
                   {editingDriver ? 'Сохранить' : 'Добавить'}
@@ -180,9 +195,15 @@ export default function DriversList() {
                   <Icon name="Car" size={14} className="text-muted-foreground" />
                   <span>{driver.vehicle}</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Icon name="Package" size={14} className="text-muted-foreground" />
-                  <span>Заказов: {driver.ordersCount}</span>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Icon name="Package" size={14} className="text-muted-foreground" />
+                    <span>Заказов: {driver.ordersCount}</span>
+                  </div>
+                  <div className="inline-flex items-center bg-gradient-to-r from-white to-gray-50 border-2 border-black rounded px-2 py-1 font-mono font-bold text-black text-xs tracking-wider shadow-sm">
+                    <span className="mr-1.5 text-blue-600">RUS</span>
+                    {driver.plateNumber}
+                  </div>
                 </div>
               </div>
             </CardContent>
