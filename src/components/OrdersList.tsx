@@ -58,17 +58,29 @@ export default function OrdersList({ onViewOnMap }: OrdersListProps = {}) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (editingOrder) {
-      setOrders(orders.map(order => 
-        order.id === editingOrder.id 
-          ? { ...order, ...formData }
-          : order
-      ));
+      const updatedOrder = { ...editingOrder, ...formData };
+      
+      if (updatedOrder.status === 'completed' || updatedOrder.status === 'delivered') {
+        setArchivedOrders([...archivedOrders, updatedOrder]);
+        setOrders(orders.filter(order => order.id !== editingOrder.id));
+      } else {
+        setOrders(orders.map(order => 
+          order.id === editingOrder.id 
+            ? updatedOrder
+            : order
+        ));
+      }
     } else {
       const newOrder: Order = {
         id: String(orders.length + 1).padStart(3, '0'),
         ...formData
       };
-      setOrders([...orders, newOrder]);
+      
+      if (newOrder.status === 'completed' || newOrder.status === 'delivered') {
+        setArchivedOrders([...archivedOrders, newOrder]);
+      } else {
+        setOrders([...orders, newOrder]);
+      }
     }
     resetForm();
   };
