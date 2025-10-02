@@ -72,8 +72,8 @@ export default function MapView({ selectedOrderId }: MapViewProps) {
       const order = demoOrders.find(o => o.id === selectedOrderId);
       if (order) {
         setSelectedOrder(order);
-        if (mapInstanceRef.current && order.fromCoords) {
-          mapInstanceRef.current.setCenter(order.fromCoords, 14, {
+        if (mapInstanceRef.current && order.toCoords) {
+          mapInstanceRef.current.setCenter(order.toCoords, 14, {
             duration: 500
           });
         }
@@ -109,53 +109,24 @@ export default function MapView({ selectedOrderId }: MapViewProps) {
       mapInstanceRef.current = map;
 
       demoOrders.forEach((order) => {
-        if (order.fromCoords && order.toCoords) {
-          const fromPlacemark = new (window as any).ymaps.Placemark(
-            order.fromCoords,
-            {
-              balloonContent: `<strong>Заказ #${order.id}</strong><br>Откуда: ${order.fromAddress}<br>Телефон: ${order.phone}`,
-              iconCaption: `#${order.id} Откуда`
-            },
-            {
-              preset: 'islands#greenDotIconWithCaption',
-              iconColor: order.status === 'processing' ? '#FF9800' : '#F44436'
-            }
-          );
-
+        if (order.toCoords) {
           const toPlacemark = new (window as any).ymaps.Placemark(
             order.toCoords,
             {
-              balloonContent: `<strong>Заказ #${order.id}</strong><br>Куда: ${order.toAddress}`,
-              iconCaption: `#${order.id} Куда`
+              balloonContent: `<strong>Заказ #${order.id}</strong><br>Куда: ${order.toAddress}<br>Телефон: ${order.phone}`,
+              iconCaption: `#${order.id}`
             },
             {
-              preset: 'islands#blueDotIconWithCaption'
+              preset: 'islands#dotIconWithCaption',
+              iconColor: order.status === 'processing' ? '#FF9800' : order.status === 'completed' ? '#4CAF50' : '#F44436'
             }
           );
-
-          fromPlacemark.events.add('click', () => {
-            setSelectedOrder(order);
-          });
 
           toPlacemark.events.add('click', () => {
             setSelectedOrder(order);
           });
 
-          map.geoObjects.add(fromPlacemark);
           map.geoObjects.add(toPlacemark);
-
-          const route = new (window as any).ymaps.multiRouter.MultiRoute(
-            {
-              referencePoints: [order.fromCoords, order.toCoords]
-            },
-            {
-              boundsAutoApply: false,
-              routeActiveStrokeWidth: 4,
-              routeActiveStrokeColor: order.status === 'processing' ? '#FF9800' : '#F44436'
-            }
-          );
-
-          map.geoObjects.add(route);
         }
       });
 
@@ -247,8 +218,8 @@ export default function MapView({ selectedOrderId }: MapViewProps) {
                     key={order.id}
                     onClick={() => {
                       setSelectedOrder(order);
-                      if (mapInstanceRef.current && order.fromCoords) {
-                        mapInstanceRef.current.setCenter(order.fromCoords, 14, {
+                      if (mapInstanceRef.current && order.toCoords) {
+                        mapInstanceRef.current.setCenter(order.toCoords, 14, {
                           duration: 500
                         });
                       }
