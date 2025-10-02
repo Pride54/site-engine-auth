@@ -20,6 +20,10 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
     }
   };
 
+  const handleDemoLogin = () => {
+    onLogin();
+  };
+
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <Card className="w-full max-w-md shadow-lg">
@@ -58,6 +62,21 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
               Войти
             </Button>
           </form>
+          
+          <div className="mt-6 pt-6 border-t border-border">
+            <Button 
+              type="button" 
+              variant="outline" 
+              className="w-full gap-2"
+              onClick={handleDemoLogin}
+            >
+              <Icon name="Eye" size={18} />
+              Демо-доступ
+            </Button>
+            <p className="text-xs text-muted-foreground text-center mt-2">
+              Войти без регистрации
+            </p>
+          </div>
         </CardContent>
       </Card>
     </div>
