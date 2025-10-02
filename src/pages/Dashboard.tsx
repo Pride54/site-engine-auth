@@ -6,6 +6,7 @@ import OrdersList from '@/components/OrdersList';
 import DriversList from '@/components/DriversList';
 import CompletedOrders from '@/components/CompletedOrders';
 import Updates from '@/components/Updates';
+import MapView from '@/components/MapView';
 
 interface DashboardProps {
   onLogout: () => void;
@@ -69,17 +70,7 @@ export default function Dashboard({ onLogout }: DashboardProps) {
           </TabsContent>
 
           <TabsContent value="map" className="mt-0">
-            <div className="bg-card rounded-xl p-8 text-center border border-border">
-              <Icon name="Map" size={48} className="mx-auto mb-4 text-muted-foreground" />
-              <h3 className="text-xl font-heading font-semibold mb-2">Онлайн карта</h3>
-              <p className="text-muted-foreground mb-4">
-                Интеграция с Яндекс.Картами для отслеживания водителей и маршрутов
-              </p>
-              <Button variant="outline" className="gap-2">
-                <Icon name="ExternalLink" size={18} />
-                Открыть карту
-              </Button>
-            </div>
+            <MapView />
           </TabsContent>
 
           <TabsContent value="completed" className="mt-0">
