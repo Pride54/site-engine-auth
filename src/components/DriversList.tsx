@@ -116,19 +116,23 @@ export default function DriversList() {
         {drivers.map((driver) => (
           <Card key={driver.id} className="hover:shadow-md transition-shadow">
             <CardContent className="p-4 space-y-3">
-              <div className="flex items-start justify-between">
+              <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center">
                     <Icon name="User" size={24} className="text-primary" />
                   </div>
                   <div>
-                    <h3 className="font-heading font-semibold">{driver.name}</h3>
-                    <Badge 
-                      variant={driver.status === 'active' ? 'default' : 'secondary'}
-                      className={driver.status === 'active' ? 'bg-success text-white' : ''}
-                    >
-                      {driver.status === 'active' ? 'Активен' : 'Неактивен'}
-                    </Badge>
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-heading font-semibold">{driver.name}</h3>
+                      <Button
+                        size="sm"
+                        variant={driver.status === 'active' ? 'default' : 'outline'}
+                        className={`h-6 px-2 text-xs ${driver.status === 'active' ? 'bg-success hover:bg-success/90 text-white' : ''}`}
+                        onClick={() => toggleDriverStatus(driver.id)}
+                      >
+                        {driver.status === 'active' ? 'Активен' : 'Неактивен'}
+                      </Button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -147,15 +151,6 @@ export default function DriversList() {
                   <span>Заказов: {driver.ordersCount}</span>
                 </div>
               </div>
-
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="w-full"
-                onClick={() => toggleDriverStatus(driver.id)}
-              >
-                {driver.status === 'active' ? 'Деактивировать' : 'Активировать'}
-              </Button>
             </CardContent>
           </Card>
         ))}
