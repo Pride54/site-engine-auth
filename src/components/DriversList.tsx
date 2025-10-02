@@ -23,6 +23,7 @@ export default function DriversList() {
     { id: '3', name: 'Сидоров Сидор', phone: '+7 900 333-33-33', vehicle: 'Mercedes Sprinter', status: 'inactive', ordersCount: 0 },
   ]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingDriver, setEditingDriver] = useState<Driver | null>(null);
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
@@ -31,15 +32,40 @@ export default function DriversList() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const newDriver: Driver = {
-      id: String(drivers.length + 1),
-      ...formData,
-      status: 'inactive',
-      ordersCount: 0
-    };
-    setDrivers([...drivers, newDriver]);
+    if (editingDriver) {
+      setDrivers(drivers.map(driver => 
+        driver.id === editingDriver.id 
+          ? { ...driver, ...formData }
+          : driver
+      ));
+    } else {
+      const newDriver: Driver = {
+        id: String(drivers.length + 1),
+        ...formData,
+        status: 'inactive',
+        ordersCount: 0
+      };
+      setDrivers([...drivers, newDriver]);
+    }
     setFormData({ name: '', phone: '', vehicle: '' });
+    setEditingDriver(null);
     setIsDialogOpen(false);
+  };
+
+  const handleEdit = (driver: Driver) => {
+    setEditingDriver(driver);
+    setFormData({
+      name: driver.name,
+      phone: driver.phone,
+      vehicle: driver.vehicle
+    });
+    setIsDialogOpen(true);
+  };
+
+  const handleCloseDialog = () => {
+    setIsDialogOpen(false);
+    setEditingDriver(null);
+    setFormData({ name: '', phone: '', vehicle: '' });
   };
 
   const toggleDriverStatus = (id: string) => {
@@ -63,9 +89,9 @@ export default function DriversList() {
           </DialogTrigger>
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
-              <DialogTitle>Новый водитель</DialogTitle>
+              <DialogTitle>{editingDriver ? 'Редактировать водителя' : 'Новый водитель'}</DialogTitle>
               <DialogDescription>
-                Добавьте информацию о водителе
+                {editingDriver ? 'Измените информацию о водителе' : 'Добавьте информацию о водителе'}
               </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -101,9 +127,9 @@ export default function DriversList() {
               </div>
               <div className="flex gap-2 pt-2">
                 <Button type="submit" className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground">
-                  Добавить
+                  {editingDriver ? 'Сохранить' : 'Добавить'}
                 </Button>
-                <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)} className="flex-1">
+                <Button type="button" variant="outline" onClick={handleCloseDialog} className="flex-1">
                   Отмена
                 </Button>
               </div>
@@ -135,6 +161,14 @@ export default function DriversList() {
                     </div>
                   </div>
                 </div>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => handleEdit(driver)}
+                  className="h-8 w-8 p-0"
+                >
+                  <Icon name="Pencil" size={16} />
+                </Button>
               </div>
               
               <div className="space-y-2 text-sm">
