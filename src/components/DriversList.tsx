@@ -17,7 +17,11 @@ interface Driver {
   ordersCount: number;
 }
 
-export default function DriversList() {
+interface DriversListProps {
+  onViewOnMap?: (driverId: string) => void;
+}
+
+export default function DriversList({ onViewOnMap }: DriversListProps) {
   const [drivers, setDrivers] = useState<Driver[]>([
     { id: '1', name: 'Иванов Иван', phone: '+7 900 111-11-11', vehicle: 'Toyota Camry', plateNumber: 'А123БВ 777', status: 'active', ordersCount: 5 },
     { id: '2', name: 'Петров Петр', phone: '+7 900 222-22-22', vehicle: 'Ford Transit', plateNumber: 'К456МН 197', status: 'active', ordersCount: 3 },
@@ -206,6 +210,18 @@ export default function DriversList() {
                   </div>
                 </div>
               </div>
+              
+              {onViewOnMap && (
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="w-full mt-2 gap-2"
+                  onClick={() => onViewOnMap(driver.id)}
+                >
+                  <Icon name="MapPin" size={14} />
+                  Показать на карте
+                </Button>
+              )}
             </CardContent>
           </Card>
         ))}

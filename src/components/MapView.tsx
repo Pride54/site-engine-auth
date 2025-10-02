@@ -23,13 +23,16 @@ interface Driver {
 
 interface MapViewProps {
   selectedOrderId?: string | null;
+  selectedDriverId?: string | null;
 }
 
-export default function MapView({ selectedOrderId }: MapViewProps) {
+export default function MapView({ selectedOrderId, selectedDriverId }: MapViewProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<any>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [selectedDriver, setSelectedDriver] = useState<Driver | null>(null);
+  const driverPlacemarksRef = useRef<Map<string, any>>(new Map());
 
   const demoOrders: Order[] = [
     {
@@ -72,6 +75,7 @@ export default function MapView({ selectedOrderId }: MapViewProps) {
       const order = demoOrders.find(o => o.id === selectedOrderId);
       if (order) {
         setSelectedOrder(order);
+        setSelectedDriver(null);
         if (mapInstanceRef.current && order.toCoords) {
           mapInstanceRef.current.setCenter(order.toCoords, 14, {
             duration: 500
@@ -80,6 +84,26 @@ export default function MapView({ selectedOrderId }: MapViewProps) {
       }
     }
   }, [selectedOrderId]);
+
+  useEffect(() => {
+    if (selectedDriverId) {
+      const driver = demoDrivers.find(d => d.id === selectedDriverId);
+      if (driver) {
+        setSelectedDriver(driver);
+        setSelectedOrder(null);
+        if (mapInstanceRef.current) {
+          mapInstanceRef.current.setCenter(driver.coords, 15, {
+            duration: 500
+          });
+          
+          const placemark = driverPlacemarksRef.current.get(driver.id);
+          if (placemark) {
+            placemark.balloon.open();
+          }
+        }
+      }
+    }
+  }, [selectedDriverId]);
 
   useEffect(() => {
     const script = document.createElement('script');
@@ -143,6 +167,12 @@ export default function MapView({ selectedOrderId }: MapViewProps) {
           }
         );
 
+        driverPlacemark.events.add('click', () => {
+          setSelectedDriver(driver);
+          setSelectedOrder(null);
+        });
+
+        driverPlacemarksRef.current.set(driver.id, driverPlacemark);
         map.geoObjects.add(driverPlacemark);
       });
     });
@@ -169,6 +199,11 @@ export default function MapView({ selectedOrderId }: MapViewProps) {
           {selectedOrder && (
             <p className="text-sm text-muted-foreground mt-1">
               Выбран заказ: <span className="font-semibold text-primary">#{selectedOrder.id}</span>
+            </p>
+          )}
+          {selectedDriver && (
+            <p className="text-sm text-muted-foreground mt-1">
+              Выбран водитель: <span className="font-semibold text-success">{selectedDriver.name}</span>
             </p>
           )}
         </div>
@@ -257,9 +292,24 @@ export default function MapView({ selectedOrderId }: MapViewProps) {
             </h3>
             <div className="space-y-2 max-h-[260px] overflow-y-auto">
               {demoDrivers.map((driver) => (
-                <div
+                <button
                   key={driver.id}
-                  className="p-3 rounded-lg border border-border hover:shadow-md transition-all"
+                  onClick={() => {
+                    setSelectedDriver(driver);
+                    setSelectedOrder(null);
+                    if (mapInstanceRef.current) {
+                      mapInstanceRef.current.setCenter(driver.coords, 15, {
+                        duration: 500
+                      });
+                      const placemark = driverPlacemarksRef.current.get(driver.id);
+                      if (placemark) {
+                        placemark.balloon.open();
+                      }
+                    }
+                  }}
+                  className={`w-full p-3 rounded-lg border text-left transition-all hover:shadow-md ${
+                    selectedDriver?.id === driver.id ? 'border-success bg-success/5 shadow-lg' : 'border-border'
+                  }`}
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
@@ -272,7 +322,7 @@ export default function MapView({ selectedOrderId }: MapViewProps) {
                       <div className="w-2 h-2 bg-success rounded-full animate-pulse" />
                     )}
                   </div>
-                </div>
+                </button>
               ))}
             </div>
           </Card>

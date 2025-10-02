@@ -15,9 +15,17 @@ interface DashboardProps {
 export default function Dashboard({ onLogout }: DashboardProps) {
   const [activeTab, setActiveTab] = useState('orders');
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
+  const [selectedDriverId, setSelectedDriverId] = useState<string | null>(null);
 
   const handleViewOnMap = (orderId: string) => {
     setSelectedOrderId(orderId);
+    setSelectedDriverId(null);
+    setActiveTab('map');
+  };
+
+  const handleViewDriverOnMap = (driverId: string) => {
+    setSelectedDriverId(driverId);
+    setSelectedOrderId(null);
     setActiveTab('map');
   };
 
@@ -72,11 +80,11 @@ export default function Dashboard({ onLogout }: DashboardProps) {
           </TabsContent>
 
           <TabsContent value="drivers" className="mt-0">
-            <DriversList />
+            <DriversList onViewOnMap={handleViewDriverOnMap} />
           </TabsContent>
 
           <TabsContent value="map" className="mt-0">
-            <MapView selectedOrderId={selectedOrderId} />
+            <MapView selectedOrderId={selectedOrderId} selectedDriverId={selectedDriverId} />
           </TabsContent>
 
           <TabsContent value="completed" className="mt-0">
