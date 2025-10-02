@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import Icon from '@/components/ui/icon';
 
 interface Order {
@@ -19,6 +20,8 @@ interface Driver {
   name: string;
   coords: [number, number];
   status: 'active' | 'inactive';
+  plateNumber?: string;
+  vehicle?: string;
 }
 
 interface MapViewProps {
@@ -60,13 +63,17 @@ export default function MapView({ selectedOrderId, selectedDriverId }: MapViewPr
       id: '1',
       name: 'Иванов Иван',
       coords: [55.753244, 37.621423],
-      status: 'active'
+      status: 'active',
+      plateNumber: 'А123БВ 777',
+      vehicle: 'Toyota Camry'
     },
     {
       id: '2',
       name: 'Петров Петр',
       coords: [55.750, 37.618],
-      status: 'active'
+      status: 'active',
+      plateNumber: 'К456МН 197',
+      vehicle: 'Ford Transit'
     }
   ];
 
@@ -291,39 +298,56 @@ export default function MapView({ selectedOrderId, selectedDriverId }: MapViewPr
               Водители онлайн
             </h3>
             <div className="space-y-2 max-h-[260px] overflow-y-auto">
-              {demoDrivers.map((driver) => (
-                <button
-                  key={driver.id}
-                  onClick={() => {
-                    setSelectedDriver(driver);
-                    setSelectedOrder(null);
-                    if (mapInstanceRef.current) {
-                      mapInstanceRef.current.setCenter(driver.coords, 15, {
-                        duration: 500
-                      });
-                      const placemark = driverPlacemarksRef.current.get(driver.id);
-                      if (placemark) {
-                        placemark.balloon.open();
+              <TooltipProvider>
+                {demoDrivers.map((driver) => (
+                  <button
+                    key={driver.id}
+                    onClick={() => {
+                      setSelectedDriver(driver);
+                      setSelectedOrder(null);
+                      if (mapInstanceRef.current) {
+                        mapInstanceRef.current.setCenter(driver.coords, 15, {
+                          duration: 500
+                        });
+                        const placemark = driverPlacemarksRef.current.get(driver.id);
+                        if (placemark) {
+                          placemark.balloon.open();
+                        }
                       }
-                    }
-                  }}
-                  className={`w-full p-3 rounded-lg border text-left transition-all hover:shadow-md ${
-                    selectedDriver?.id === driver.id ? 'border-success bg-success/5 shadow-lg' : 'border-border'
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 bg-success/10 rounded-lg flex items-center justify-center">
-                        <Icon name="User" size={16} className="text-success" />
+                    }}
+                    className={`w-full p-3 rounded-lg border text-left transition-all hover:shadow-md ${
+                      selectedDriver?.id === driver.id ? 'border-success bg-success/5 shadow-lg' : 'border-border'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 bg-success/10 rounded-lg flex items-center justify-center">
+                          <Icon name="User" size={16} className="text-success" />
+                        </div>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <span className="font-medium text-sm cursor-help border-b border-dashed border-muted-foreground/40">
+                              {driver.name}
+                            </span>
+                          </TooltipTrigger>
+                          <TooltipContent side="right" className="max-w-xs">
+                            <div className="space-y-1">
+                              <p className="font-semibold">{driver.vehicle}</p>
+                              <div className="inline-flex items-center bg-gradient-to-r from-white to-gray-50 border-2 border-black rounded px-2 py-0.5 font-mono font-bold text-black text-xs tracking-wider">
+                                <span className="mr-1 text-blue-600 text-[10px]">RUS</span>
+                                {driver.plateNumber}
+                              </div>
+                            </div>
+                          </TooltipContent>
+                        </Tooltip>
                       </div>
-                      <span className="font-medium text-sm">{driver.name}</span>
+                      {driver.status === 'active' && (
+                        <div className="w-2 h-2 bg-success rounded-full animate-pulse" />
+                      )}
                     </div>
-                    {driver.status === 'active' && (
-                      <div className="w-2 h-2 bg-success rounded-full animate-pulse" />
-                    )}
-                  </div>
-                </button>
-              ))}
+                  </button>
+                ))}
+              </TooltipProvider>
             </div>
           </Card>
 
