@@ -21,9 +21,11 @@ interface Order {
 
 interface OrdersListProps {
   onViewOnMap?: (orderId: string) => void;
+  onOrdersChange?: (orders: Order[]) => void;
+  onArchivedOrdersChange?: (orders: Order[]) => void;
 }
 
-export default function OrdersList({ onViewOnMap }: OrdersListProps = {}) {
+export default function OrdersList({ onViewOnMap, onOrdersChange, onArchivedOrdersChange }: OrdersListProps = {}) {
   const [orders, setOrders] = useState<Order[]>([
     { id: '001', phone: '+7 900 123-45-67', fromAddress: 'ул. Ленина, 10', toAddress: 'ул. Пушкина, 25', status: 'processing' },
     { id: '002', phone: '+7 900 234-56-78', fromAddress: 'пр. Мира, 5', toAddress: 'ул. Гагарина, 12', status: 'pending' },
@@ -33,6 +35,16 @@ export default function OrdersList({ onViewOnMap }: OrdersListProps = {}) {
   ]);
   const [archivedOrders, setArchivedOrders] = useState<Order[]>([]);
   const [showArchive, setShowArchive] = useState(false);
+
+  const updateOrders = (newOrders: Order[]) => {
+    setOrders(newOrders);
+    if (onOrdersChange) onOrdersChange(newOrders);
+  };
+
+  const updateArchivedOrders = (newArchived: Order[]) => {
+    setArchivedOrders(newArchived);
+    if (onArchivedOrdersChange) onArchivedOrdersChange(newArchived);
+  };
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingOrder, setEditingOrder] = useState<Order | null>(null);
   const [formData, setFormData] = useState({
@@ -61,10 +73,10 @@ export default function OrdersList({ onViewOnMap }: OrdersListProps = {}) {
       const updatedOrder = { ...editingOrder, ...formData };
       
       if (updatedOrder.status === 'completed' || updatedOrder.status === 'delivered') {
-        setArchivedOrders([...archivedOrders, updatedOrder]);
-        setOrders(orders.filter(order => order.id !== editingOrder.id));
+        updateArchivedOrders([...archivedOrders, updatedOrder]);
+        updateOrders(orders.filter(order => order.id !== editingOrder.id));
       } else {
-        setOrders(orders.map(order => 
+        updateOrders(orders.map(order => 
           order.id === editingOrder.id 
             ? updatedOrder
             : order
@@ -77,9 +89,9 @@ export default function OrdersList({ onViewOnMap }: OrdersListProps = {}) {
       };
       
       if (newOrder.status === 'completed' || newOrder.status === 'delivered') {
-        setArchivedOrders([...archivedOrders, newOrder]);
+        updateArchivedOrders([...archivedOrders, newOrder]);
       } else {
-        setOrders([...orders, newOrder]);
+        updateOrders([...orders, newOrder]);
       }
     }
     resetForm();
@@ -97,22 +109,22 @@ export default function OrdersList({ onViewOnMap }: OrdersListProps = {}) {
   };
 
   const handleDelete = (id: string) => {
-    setOrders(orders.filter(order => order.id !== id));
+    updateOrders(orders.filter(order => order.id !== id));
   };
 
   const handleArchive = (id: string) => {
     const orderToArchive = orders.find(order => order.id === id);
     if (orderToArchive) {
-      setArchivedOrders([...archivedOrders, orderToArchive]);
-      setOrders(orders.filter(order => order.id !== id));
+      updateArchivedOrders([...archivedOrders, orderToArchive]);
+      updateOrders(orders.filter(order => order.id !== id));
     }
   };
 
   const handleUnarchive = (id: string) => {
     const orderToUnarchive = archivedOrders.find(order => order.id === id);
     if (orderToUnarchive) {
-      setOrders([...orders, orderToUnarchive]);
-      setArchivedOrders(archivedOrders.filter(order => order.id !== id));
+      updateOrders([...orders, orderToUnarchive]);
+      updateArchivedOrders(archivedOrders.filter(order => order.id !== id));
     }
   };
 

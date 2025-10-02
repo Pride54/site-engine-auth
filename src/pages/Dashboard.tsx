@@ -8,6 +8,16 @@ import CompletedOrders from '@/components/CompletedOrders';
 import Updates from '@/components/Updates';
 import MapView from '@/components/MapView';
 
+type OrderStatus = 'delivered' | 'completed' | 'processing' | 'pending';
+
+interface Order {
+  id: string;
+  phone: string;
+  fromAddress: string;
+  toAddress: string;
+  status: OrderStatus;
+}
+
 interface DashboardProps {
   onLogout: () => void;
 }
@@ -16,6 +26,8 @@ export default function Dashboard({ onLogout }: DashboardProps) {
   const [activeTab, setActiveTab] = useState('orders');
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const [selectedDriverId, setSelectedDriverId] = useState<string | null>(null);
+  const [allOrders, setAllOrders] = useState<Order[]>([]);
+  const [archivedOrders, setArchivedOrders] = useState<Order[]>([]);
 
   const handleViewOnMap = (orderId: string) => {
     setSelectedOrderId(orderId);
@@ -76,7 +88,11 @@ export default function Dashboard({ onLogout }: DashboardProps) {
           </TabsList>
 
           <TabsContent value="orders" className="mt-0">
-            <OrdersList onViewOnMap={handleViewOnMap} />
+            <OrdersList 
+              onViewOnMap={handleViewOnMap} 
+              onOrdersChange={setAllOrders}
+              onArchivedOrdersChange={setArchivedOrders}
+            />
           </TabsContent>
 
           <TabsContent value="drivers" className="mt-0">
@@ -88,7 +104,7 @@ export default function Dashboard({ onLogout }: DashboardProps) {
           </TabsContent>
 
           <TabsContent value="completed" className="mt-0">
-            <CompletedOrders />
+            <CompletedOrders orders={allOrders} archivedOrders={archivedOrders} />
           </TabsContent>
 
           <TabsContent value="updates" className="mt-0">
