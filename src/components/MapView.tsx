@@ -27,6 +27,7 @@ interface MapViewProps {
 
 export default function MapView({ selectedOrderId }: MapViewProps) {
   const mapRef = useRef<HTMLDivElement>(null);
+  const mapInstanceRef = useRef<any>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
 
@@ -71,6 +72,11 @@ export default function MapView({ selectedOrderId }: MapViewProps) {
       const order = demoOrders.find(o => o.id === selectedOrderId);
       if (order) {
         setSelectedOrder(order);
+        if (mapInstanceRef.current && order.fromCoords) {
+          mapInstanceRef.current.setCenter(order.fromCoords, 14, {
+            duration: 500
+          });
+        }
       }
     }
   }, [selectedOrderId]);
@@ -100,6 +106,8 @@ export default function MapView({ selectedOrderId }: MapViewProps) {
         controls: ['zoomControl', 'fullscreenControl']
       });
 
+      mapInstanceRef.current = map;
+
       demoOrders.forEach((order) => {
         if (order.fromCoords && order.toCoords) {
           const fromPlacemark = new (window as any).ymaps.Placemark(
@@ -124,6 +132,14 @@ export default function MapView({ selectedOrderId }: MapViewProps) {
               preset: 'islands#blueDotIconWithCaption'
             }
           );
+
+          fromPlacemark.events.add('click', () => {
+            setSelectedOrder(order);
+          });
+
+          toPlacemark.events.add('click', () => {
+            setSelectedOrder(order);
+          });
 
           map.geoObjects.add(fromPlacemark);
           map.geoObjects.add(toPlacemark);
@@ -177,7 +193,14 @@ export default function MapView({ selectedOrderId }: MapViewProps) {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-heading font-bold">Онлайн карта</h2>
+        <div>
+          <h2 className="text-2xl font-heading font-bold">Онлайн карта</h2>
+          {selectedOrder && (
+            <p className="text-sm text-muted-foreground mt-1">
+              Выбран заказ: <span className="font-semibold text-primary">#{selectedOrder.id}</span>
+            </p>
+          )}
+        </div>
         <div className="flex gap-2">
           <Badge variant="secondary" className="gap-1">
             <Icon name="Package" size={14} />
@@ -222,9 +245,16 @@ export default function MapView({ selectedOrderId }: MapViewProps) {
                 return (
                   <button
                     key={order.id}
-                    onClick={() => setSelectedOrder(order)}
+                    onClick={() => {
+                      setSelectedOrder(order);
+                      if (mapInstanceRef.current && order.fromCoords) {
+                        mapInstanceRef.current.setCenter(order.fromCoords, 14, {
+                          duration: 500
+                        });
+                      }
+                    }}
                     className={`w-full p-3 rounded-lg border text-left transition-all hover:shadow-md ${
-                      selectedOrder?.id === order.id ? 'border-primary bg-primary/5' : 'border-border'
+                      selectedOrder?.id === order.id ? 'border-primary bg-primary/5 shadow-lg' : 'border-border'
                     }`}
                   >
                     <div className="flex items-center justify-between mb-2">
