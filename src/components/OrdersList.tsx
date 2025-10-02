@@ -145,16 +145,16 @@ export default function OrdersList({ onViewOnMap }: OrdersListProps = {}) {
               <Badge variant="secondary" className="ml-1">{archivedOrders.length}</Badge>
             )}
           </Button>
-        <Dialog open={isDialogOpen} onOpenChange={(open) => {
-          setIsDialogOpen(open);
-          if (!open) resetForm();
-        }}>
-          <DialogTrigger asChild>
-            <Button className="gap-2 bg-primary hover:bg-primary/90 text-primary-foreground">
-              <Icon name="Plus" size={18} />
-              Новый заказ
-            </Button>
-          </DialogTrigger>
+          <Dialog open={isDialogOpen} onOpenChange={(open) => {
+            setIsDialogOpen(open);
+            if (!open) resetForm();
+          }}>
+            <DialogTrigger asChild>
+              <Button className="gap-2 bg-primary hover:bg-primary/90 text-primary-foreground">
+                <Icon name="Plus" size={18} />
+                Новый заказ
+              </Button>
+            </DialogTrigger>
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
               <DialogTitle>{editingOrder ? 'Редактировать заказ' : 'Новый заказ'}</DialogTitle>
@@ -217,7 +217,8 @@ export default function OrdersList({ onViewOnMap }: OrdersListProps = {}) {
               </div>
             </form>
           </DialogContent>
-        </Dialog>
+          </Dialog>
+        </div>
       </div>
 
       <div className="space-y-3">
