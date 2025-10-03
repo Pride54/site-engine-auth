@@ -11,13 +11,7 @@ import ArchivedOrderCard from '@/components/orders/ArchivedOrderCard';
 import type { Order, OrderStatus, OrdersListProps, Driver } from '@/components/orders/types';
 
 export default function OrdersList({ onViewOnMap, onOrdersChange, onArchivedOrdersChange }: OrdersListProps = {}) {
-  const [orders, setOrders] = useState<Order[]>([
-    { id: '001', phone: '+7 900 123-45-67', fromAddress: 'ул. Ленина, 10', toAddress: 'ул. Пушкина, 25', status: 'processing', driverId: '1', driverName: 'Иванов Иван' },
-    { id: '002', phone: '+7 900 234-56-78', fromAddress: 'пр. Мира, 5', toAddress: 'ул. Гагарина, 12', status: 'pending' },
-    { id: '003', phone: '+7 900 345-67-89', fromAddress: 'ул. Советская, 3', toAddress: 'пр. Победы, 18', status: 'delivered' },
-    { id: '004', phone: '+7 900 456-78-90', fromAddress: 'ул. Ломоносова, 7', toAddress: 'ул. Кирова, 22', status: 'completed' },
-    { id: '005', phone: '+7 900 567-89-01', fromAddress: 'пр. Ленина, 45', toAddress: 'ул. Жукова, 8', status: 'completed' },
-  ]);
+  const [orders, setOrders] = useState<Order[]>([]);
   const [archivedOrders, setArchivedOrders] = useState<Order[]>([]);
   const [showArchive, setShowArchive] = useState(false);
   const [assignDialogOpen, setAssignDialogOpen] = useState(false);
