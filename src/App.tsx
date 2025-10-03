@@ -15,9 +15,21 @@ type UserRole = 'admin' | 'driver' | null;
 
 const App = () => {
   const [userRole, setUserRole] = useState<UserRole>(null);
+  const [driverId, setDriverId] = useState<string>('');
+  const [driverName, setDriverName] = useState<string>('');
+
+  const handleSelectRole = (role: 'admin' | 'driver', id?: string, name?: string) => {
+    setUserRole(role);
+    if (role === 'driver' && id && name) {
+      setDriverId(id);
+      setDriverName(name);
+    }
+  };
 
   const handleLogout = () => {
     setUserRole(null);
+    setDriverId('');
+    setDriverName('');
   };
 
   return (
@@ -32,7 +44,7 @@ const App = () => {
               element={
                 userRole ? 
                 <Navigate to={userRole === 'admin' ? "/dashboard" : "/driver"} replace /> : 
-                <RoleSelect onSelectRole={setUserRole} />
+                <RoleSelect onSelectRole={handleSelectRole} />
               } 
             />
             <Route 
@@ -47,7 +59,7 @@ const App = () => {
               path="/driver" 
               element={
                 userRole === 'driver' ? 
-                <DriverPortal driverId="1" driverName="Иванов Иван" onLogout={handleLogout} /> : 
+                <DriverPortal driverId={driverId} driverName={driverName} onLogout={handleLogout} /> : 
                 <Navigate to="/" replace />
               } 
             />
