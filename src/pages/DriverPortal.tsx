@@ -24,6 +24,18 @@ interface DriverPortalProps {
 export default function DriverPortal({ driverId, driverName, onLogout }: DriverPortalProps) {
   const [orders, setOrders] = useState<Order[]>([]);
   const [completedOrders, setCompletedOrders] = useState<Order[]>([]);
+  const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>('default');
+
+  useEffect(() => {
+    if ('Notification' in window) {
+      setNotificationPermission(Notification.permission);
+      if (Notification.permission === 'default') {
+        Notification.requestPermission().then(permission => {
+          setNotificationPermission(permission);
+        });
+      }
+    }
+  }, []);
 
   useEffect(() => {
     const loadOrders = () => {
@@ -31,6 +43,29 @@ export default function DriverPortal({ driverId, driverName, onLogout }: DriverP
       if (savedOrders) {
         const allOrders = JSON.parse(savedOrders);
         const myOrders = allOrders.filter((order: Order) => order.driverId === driverId);
+        
+        if (myOrders.length > orders.length) {
+          const newOrders = myOrders.filter(
+            (newOrder: Order) => !orders.find(o => o.id === newOrder.id)
+          );
+          
+          newOrders.forEach((order: Order) => {
+            if (notificationPermission === 'granted') {
+              new Notification('Новый заказ!', {
+                body: `Заказ #${order.id}\nОткуда: ${order.fromAddress}\nКуда: ${order.toAddress}`,
+                icon: '/favicon.ico',
+                badge: '/favicon.ico',
+                tag: `order-${order.id}`,
+                requireInteraction: true
+              });
+            }
+            
+            if ('vibrate' in navigator) {
+              navigator.vibrate([200, 100, 200]);
+            }
+          });
+        }
+        
         setOrders(myOrders);
       }
     };
@@ -48,7 +83,7 @@ export default function DriverPortal({ driverId, driverName, onLogout }: DriverP
       window.removeEventListener('storage', handleStorageChange);
       clearInterval(interval);
     };
-  }, [driverId]);
+  }, [driverId, orders.length, notificationPermission]);
 
   const handleStartOrder = (orderId: string) => {
     const savedOrders = localStorage.getItem('orders');
@@ -110,8 +145,15 @@ export default function DriverPortal({ driverId, driverName, onLogout }: DriverP
               <p className="text-sm text-muted-foreground">{driverName}</p>
             </div>
           </div>
-          <Button 
-            variant="outline" 
+          <div className="flex items-center gap-2">
+            {notificationPermission === 'granted' && (
+              <Badge variant="outline" className="gap-1 text-xs">
+                <Icon name="Bell" size={12} />
+                Уведомления вкл
+              </Badge>
+            )}
+            <Button 
+              variant="outline" 
             onClick={onLogout}
             className="gap-2"
           >
