@@ -5,7 +5,6 @@ import Icon from '@/components/ui/icon';
 import OrdersList from '@/components/OrdersList';
 import DriversList from '@/components/DriversList';
 import CompletedOrders from '@/components/CompletedOrders';
-import Updates from '@/components/Updates';
 import MapView from '@/components/MapView';
 
 type OrderStatus = 'delivered' | 'completed' | 'processing' | 'pending';
@@ -64,7 +63,7 @@ export default function Dashboard({ onLogout }: DashboardProps) {
 
       <main className="container mx-auto px-4 py-6">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-5 mb-6 bg-card p-1 rounded-xl">
+          <TabsList className="grid w-full grid-cols-4 mb-6 bg-card p-1 rounded-xl">
             <TabsTrigger value="orders" className="rounded-lg gap-2">
               <Icon name="ClipboardList" size={18} />
               <span className="hidden sm:inline">Список заказов</span>
@@ -80,10 +79,6 @@ export default function Dashboard({ onLogout }: DashboardProps) {
             <TabsTrigger value="completed" className="rounded-lg gap-2">
               <Icon name="CheckCircle2" size={18} />
               <span className="hidden sm:inline">Все заказы</span>
-            </TabsTrigger>
-            <TabsTrigger value="updates" className="rounded-lg gap-2">
-              <Icon name="Bell" size={18} />
-              <span className="hidden sm:inline">Обновления</span>
             </TabsTrigger>
           </TabsList>
 
@@ -105,10 +100,6 @@ export default function Dashboard({ onLogout }: DashboardProps) {
 
           <TabsContent value="completed" className="mt-0">
             <CompletedOrders orders={allOrders} archivedOrders={archivedOrders} />
-          </TabsContent>
-
-          <TabsContent value="updates" className="mt-0">
-            <Updates />
           </TabsContent>
         </Tabs>
       </main>
