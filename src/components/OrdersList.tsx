@@ -37,20 +37,8 @@ export default function OrdersList({ onViewOnMap, onOrdersChange, onArchivedOrde
   };
 
   useEffect(() => {
-    const savedOrders = localStorage.getItem('orders');
-    const savedArchived = localStorage.getItem('archivedOrders');
-    
-    if (savedOrders) {
-      const parsedOrders = JSON.parse(savedOrders);
-      setOrders(parsedOrders);
-      if (onOrdersChange) onOrdersChange(parsedOrders);
-    }
-    
-    if (savedArchived) {
-      const parsedArchived = JSON.parse(savedArchived);
-      setArchivedOrders(parsedArchived);
-      if (onArchivedOrdersChange) onArchivedOrdersChange(parsedArchived);
-    }
+    localStorage.removeItem('orders');
+    localStorage.removeItem('archivedOrders');
   }, []);
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
