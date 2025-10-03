@@ -1,37 +1,14 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Card, CardContent } from '@/components/ui/card';
 import Icon from '@/components/ui/icon';
 import { Badge } from '@/components/ui/badge';
 import OrdersStats from '@/components/OrdersStats';
-
-type OrderStatus = 'delivered' | 'completed' | 'processing' | 'pending';
-
-interface Order {
-  id: string;
-  phone: string;
-  fromAddress: string;
-  toAddress: string;
-  status: OrderStatus;
-  driverId?: string;
-  driverName?: string;
-}
-
-interface Driver {
-  id: string;
-  name: string;
-  status: 'active' | 'inactive';
-}
-
-interface OrdersListProps {
-  onViewOnMap?: (orderId: string) => void;
-  onOrdersChange?: (orders: Order[]) => void;
-  onArchivedOrdersChange?: (orders: Order[]) => void;
-}
+import OrderFormDialog from '@/components/orders/OrderFormDialog';
+import AssignDriverDialog from '@/components/orders/AssignDriverDialog';
+import OrderCard from '@/components/orders/OrderCard';
+import ArchivedOrderCard from '@/components/orders/ArchivedOrderCard';
+import type { Order, OrderStatus, OrdersListProps, Driver } from '@/components/orders/types';
 
 export default function OrdersList({ onViewOnMap, onOrdersChange, onArchivedOrdersChange }: OrdersListProps = {}) {
   const [orders, setOrders] = useState<Order[]>([
@@ -81,6 +58,7 @@ export default function OrdersList({ onViewOnMap, onOrdersChange, onArchivedOrde
       if (onArchivedOrdersChange) onArchivedOrdersChange(parsedArchived);
     }
   }, []);
+
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingOrder, setEditingOrder] = useState<Order | null>(null);
   const [formData, setFormData] = useState({
@@ -89,19 +67,6 @@ export default function OrdersList({ onViewOnMap, onOrdersChange, onArchivedOrde
     toAddress: '',
     status: 'pending' as OrderStatus
   });
-
-  const getStatusConfig = (status: OrderStatus) => {
-    switch (status) {
-      case 'delivered':
-        return { label: 'Доставлено', className: 'bg-blue-500 text-white hover:bg-blue-600' };
-      case 'completed':
-        return { label: 'Выполнено', className: 'bg-success text-white hover:bg-success/90' };
-      case 'processing':
-        return { label: 'В обработке', className: 'bg-warning text-white hover:bg-warning/90' };
-      case 'pending':
-        return { label: 'Не выполнено', className: 'bg-error text-white hover:bg-error/90' };
-    }
-  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -192,6 +157,10 @@ export default function OrdersList({ onViewOnMap, onOrdersChange, onArchivedOrde
     ));
   };
 
+  const handleDeleteArchived = (id: string) => {
+    updateArchivedOrders(archivedOrders.filter(o => o.id !== id));
+  };
+
   const resetForm = () => {
     setFormData({ phone: '', fromAddress: '', toAddress: '', status: 'pending' });
     setEditingOrder(null);
@@ -233,142 +202,27 @@ export default function OrdersList({ onViewOnMap, onOrdersChange, onArchivedOrde
               <Badge variant="secondary" className="ml-1">{archivedOrders.length}</Badge>
             )}
           </Button>
-          <Dialog open={isDialogOpen} onOpenChange={(open) => {
-            setIsDialogOpen(open);
-            if (!open) resetForm();
-          }}>
-            <DialogTrigger asChild>
-              <Button className="gap-2 bg-primary hover:bg-primary/90 text-primary-foreground">
-                <Icon name="Plus" size={18} />
-                Новый заказ
-              </Button>
-            </DialogTrigger>
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle>{editingOrder ? 'Редактировать заказ' : 'Новый заказ'}</DialogTitle>
-              <DialogDescription>
-                Заполните информацию о заказе
-              </DialogDescription>
-            </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="phone">Телефон</Label>
-                <Input
-                  id="phone"
-                  placeholder="+7 900 123-45-67"
-                  value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="from">Откуда</Label>
-                <Input
-                  id="from"
-                  placeholder="Адрес отправки"
-                  value={formData.fromAddress}
-                  onChange={(e) => setFormData({ ...formData, fromAddress: e.target.value })}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="to">Куда</Label>
-                <Input
-                  id="to"
-                  placeholder="Адрес доставки"
-                  value={formData.toAddress}
-                  onChange={(e) => setFormData({ ...formData, toAddress: e.target.value })}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="status">Статус</Label>
-                <Select value={formData.status} onValueChange={(value: OrderStatus) => setFormData({ ...formData, status: value })}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="pending">Не выполнено</SelectItem>
-                    <SelectItem value="processing">В обработке</SelectItem>
-                    <SelectItem value="completed">Выполнено</SelectItem>
-                    <SelectItem value="delivered">Доставлено</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="flex gap-2 pt-2">
-                <Button type="submit" className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground">
-                  {editingOrder ? 'Сохранить' : 'Создать'}
-                </Button>
-                <Button type="button" variant="outline" onClick={resetForm} className="flex-1">
-                  Отмена
-                </Button>
-              </div>
-            </form>
-          </DialogContent>
-          </Dialog>
+          <OrderFormDialog
+            isDialogOpen={isDialogOpen}
+            setIsDialogOpen={setIsDialogOpen}
+            editingOrder={editingOrder}
+            formData={formData}
+            setFormData={setFormData}
+            handleSubmit={handleSubmit}
+            resetForm={resetForm}
+          />
         </div>
       </div>
 
-      {/* Диалог назначения водителя */}
-      <Dialog open={assignDialogOpen} onOpenChange={setAssignDialogOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Назначить водителя</DialogTitle>
-            <DialogDescription>
-              Выберите водителя для заказа #{orderToAssign?.id}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label>Водитель</Label>
-              <Select value={selectedDriverId} onValueChange={setSelectedDriverId}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Выберите водителя" />
-                </SelectTrigger>
-                <SelectContent>
-                  {availableDrivers.filter(d => d.status === 'active').map((driver) => (
-                    <SelectItem key={driver.id} value={driver.id}>
-                      <div className="flex items-center gap-2">
-                        <Icon name="User" size={14} />
-                        {driver.name}
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            {orderToAssign && (
-              <div className="bg-muted/50 rounded-lg p-3 space-y-2 text-sm">
-                <div className="flex items-center gap-2">
-                  <Icon name="MapPin" size={14} className="text-muted-foreground" />
-                  <span className="truncate">{orderToAssign.fromAddress}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Icon name="Navigation" size={14} className="text-muted-foreground" />
-                  <span className="truncate">{orderToAssign.toAddress}</span>
-                </div>
-              </div>
-            )}
-            <div className="flex gap-2 pt-2">
-              <Button 
-                onClick={handleAssignDriver} 
-                disabled={!selectedDriverId}
-                className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground"
-              >
-                Назначить
-              </Button>
-              <Button 
-                type="button" 
-                variant="outline" 
-                onClick={() => setAssignDialogOpen(false)} 
-                className="flex-1"
-              >
-                Отмена
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <AssignDriverDialog
+        assignDialogOpen={assignDialogOpen}
+        setAssignDialogOpen={setAssignDialogOpen}
+        orderToAssign={orderToAssign}
+        selectedDriverId={selectedDriverId}
+        setSelectedDriverId={setSelectedDriverId}
+        availableDrivers={availableDrivers}
+        handleAssignDriver={handleAssignDriver}
+      />
 
       <div className="space-y-3">
         {showArchive ? (
@@ -381,147 +235,28 @@ export default function OrdersList({ onViewOnMap, onOrdersChange, onArchivedOrde
               </CardContent>
             </Card>
           ) : (
-            archivedOrders.map((order) => {
-              const statusConfig = getStatusConfig(order.status);
-              return (
-                <Card key={order.id} className="hover:shadow-md transition-shadow opacity-75">
-                  <CardContent className="p-4">
-                    <div className="flex items-center gap-4">
-                      <div className="flex-shrink-0">
-                        <div className="w-12 h-12 bg-muted rounded-xl flex items-center justify-center">
-                          <span className="font-heading font-bold text-muted-foreground">#{order.id}</span>
-                        </div>
-                      </div>
-                      
-                      <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-3 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <Icon name="Phone" size={16} className="text-muted-foreground flex-shrink-0" />
-                          <span className="text-sm truncate">{order.phone}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Icon name="MapPin" size={16} className="text-muted-foreground flex-shrink-0" />
-                          <span className="text-sm truncate">{order.fromAddress}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Icon name="Navigation" size={16} className="text-muted-foreground flex-shrink-0" />
-                          <span className="text-sm truncate">{order.toAddress}</span>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-2 flex-shrink-0">
-                        <Badge variant="secondary">
-                          {statusConfig.label}
-                        </Badge>
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          onClick={() => handleUnarchive(order.id)}
-                          title="Восстановить"
-                        >
-                          <Icon name="ArchiveRestore" size={18} className="text-primary" />
-                        </Button>
-                        <Button variant="ghost" size="icon" onClick={() => {
-                          setArchivedOrders(archivedOrders.filter(o => o.id !== order.id));
-                        }}>
-                          <Icon name="Trash2" size={18} className="text-error" />
-                        </Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })
+            archivedOrders.map((order) => (
+              <ArchivedOrderCard
+                key={order.id}
+                order={order}
+                onUnarchive={handleUnarchive}
+                onDelete={handleDeleteArchived}
+              />
+            ))
           )
         ) : (
-          activeOrders.map((order) => {
-            const statusConfig = getStatusConfig(order.status);
-            return (
-              <Card key={order.id} className="hover:shadow-md transition-shadow">
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-4">
-                    <div className="flex-shrink-0">
-                      <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center">
-                        <span className="font-heading font-bold text-primary">#{order.id}</span>
-                      </div>
-                    </div>
-                    
-                    <div className="flex-1 space-y-2 min-w-0">
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                        <div className="flex items-center gap-2">
-                          <Icon name="Phone" size={16} className="text-muted-foreground flex-shrink-0" />
-                          <span className="text-sm truncate">{order.phone}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Icon name="MapPin" size={16} className="text-muted-foreground flex-shrink-0" />
-                          <span className="text-sm truncate">{order.fromAddress}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Icon name="Navigation" size={16} className="text-muted-foreground flex-shrink-0" />
-                          <span className="text-sm truncate">{order.toAddress}</span>
-                        </div>
-                      </div>
-                      {order.driverId ? (
-                        <div className="flex items-center gap-2">
-                          <Badge variant="outline" className="gap-1">
-                            <Icon name="User" size={12} />
-                            {order.driverName}
-                          </Badge>
-                          <Button 
-                            variant="ghost" 
-                            size="sm"
-                            className="h-6 px-2 text-xs text-muted-foreground hover:text-error"
-                            onClick={() => handleUnassignDriver(order.id)}
-                          >
-                            <Icon name="X" size={12} />
-                          </Button>
-                        </div>
-                      ) : (
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          className="h-7 text-xs gap-1 w-fit"
-                          onClick={() => handleOpenAssignDialog(order)}
-                        >
-                          <Icon name="UserPlus" size={12} />
-                          Назначить водителя
-                        </Button>
-                      )}
-                    </div>
-
-                    <div className="flex items-center gap-2 flex-shrink-0">
-                      <Badge className={statusConfig.className}>
-                        {statusConfig.label}
-                      </Badge>
-                      {onViewOnMap && (
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          onClick={() => onViewOnMap(order.id)}
-                          title="Показать на карте"
-                        >
-                          <Icon name="MapPin" size={18} className="text-primary" />
-                        </Button>
-                      )}
-                      <Button variant="ghost" size="icon" onClick={() => handleEdit(order)}>
-                        <Icon name="Edit" size={18} />
-                      </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        onClick={() => handleArchive(order.id)}
-                        title="В архив"
-                      >
-                        <Icon name="Archive" size={18} className="text-muted-foreground" />
-                      </Button>
-                      <Button variant="ghost" size="icon" onClick={() => handleDelete(order.id)}>
-                        <Icon name="Trash2" size={18} className="text-error" />
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })
+          activeOrders.map((order) => (
+            <OrderCard
+              key={order.id}
+              order={order}
+              onViewOnMap={onViewOnMap}
+              onEdit={handleEdit}
+              onArchive={handleArchive}
+              onDelete={handleDelete}
+              onOpenAssignDialog={handleOpenAssignDialog}
+              onUnassignDriver={handleUnassignDriver}
+            />
+          ))
         )}
       </div>
     </div>
