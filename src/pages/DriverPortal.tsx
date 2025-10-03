@@ -154,12 +154,13 @@ export default function DriverPortal({ driverId, driverName, onLogout }: DriverP
             )}
             <Button 
               variant="outline" 
-            onClick={onLogout}
-            className="gap-2"
-          >
-            <Icon name="LogOut" size={18} />
-            Выход
-          </Button>
+              onClick={onLogout}
+              className="gap-2"
+            >
+              <Icon name="LogOut" size={18} />
+              Выход
+            </Button>
+          </div>
         </div>
       </header>
 
