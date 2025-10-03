@@ -37,45 +37,9 @@ export default function MapView({ selectedOrderId, selectedDriverId }: MapViewPr
   const [selectedDriver, setSelectedDriver] = useState<Driver | null>(null);
   const driverPlacemarksRef = useRef<Map<string, any>>(new Map());
 
-  const demoOrders: Order[] = [
-    {
-      id: '001',
-      phone: '+7 900 123-45-67',
-      fromAddress: 'ул. Ленина, 10',
-      toAddress: 'ул. Пушкина, 25',
-      status: 'processing',
-      fromCoords: [55.751244, 37.618423],
-      toCoords: [55.755244, 37.625423]
-    },
-    {
-      id: '002',
-      phone: '+7 900 234-56-78',
-      fromAddress: 'пр. Мира, 5',
-      toAddress: 'ул. Гагарина, 12',
-      status: 'pending',
-      fromCoords: [55.748, 37.615],
-      toCoords: [55.753, 37.621]
-    }
-  ];
+  const demoOrders: Order[] = [];
 
-  const demoDrivers: Driver[] = [
-    {
-      id: '1',
-      name: 'Иванов Иван',
-      coords: [55.753244, 37.621423],
-      status: 'active',
-      plateNumber: 'А123БВ 777',
-      vehicle: 'Toyota Camry'
-    },
-    {
-      id: '2',
-      name: 'Петров Петр',
-      coords: [55.750, 37.618],
-      status: 'active',
-      plateNumber: 'К456МН 197',
-      vehicle: 'Ford Transit'
-    }
-  ];
+  const demoDrivers: Driver[] = [];
 
   useEffect(() => {
     if (selectedOrderId) {
