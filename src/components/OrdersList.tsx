@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -55,13 +55,32 @@ export default function OrdersList({ onViewOnMap, onOrdersChange, onArchivedOrde
 
   const updateOrders = (newOrders: Order[]) => {
     setOrders(newOrders);
+    localStorage.setItem('orders', JSON.stringify(newOrders));
     if (onOrdersChange) onOrdersChange(newOrders);
   };
 
   const updateArchivedOrders = (newArchived: Order[]) => {
     setArchivedOrders(newArchived);
+    localStorage.setItem('archivedOrders', JSON.stringify(newArchived));
     if (onArchivedOrdersChange) onArchivedOrdersChange(newArchived);
   };
+
+  useEffect(() => {
+    const savedOrders = localStorage.getItem('orders');
+    const savedArchived = localStorage.getItem('archivedOrders');
+    
+    if (savedOrders) {
+      const parsedOrders = JSON.parse(savedOrders);
+      setOrders(parsedOrders);
+      if (onOrdersChange) onOrdersChange(parsedOrders);
+    }
+    
+    if (savedArchived) {
+      const parsedArchived = JSON.parse(savedArchived);
+      setArchivedOrders(parsedArchived);
+      if (onArchivedOrdersChange) onArchivedOrdersChange(parsedArchived);
+    }
+  }, []);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingOrder, setEditingOrder] = useState<Order | null>(null);
   const [formData, setFormData] = useState({

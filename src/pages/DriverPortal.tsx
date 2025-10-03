@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -22,17 +22,46 @@ interface DriverPortalProps {
 }
 
 export default function DriverPortal({ driverId, driverName, onLogout }: DriverPortalProps) {
-  const [orders, setOrders] = useState<Order[]>([
-    { id: '001', phone: '+7 900 123-45-67', fromAddress: 'ул. Ленина, 10', toAddress: 'ул. Пушкина, 25', status: 'processing', driverId: driverId },
-    { id: '002', phone: '+7 900 234-56-78', fromAddress: 'пр. Мира, 5', toAddress: 'ул. Гагарина, 12', status: 'pending', driverId: driverId },
-  ]);
-
+  const [orders, setOrders] = useState<Order[]>([]);
   const [completedOrders, setCompletedOrders] = useState<Order[]>([]);
 
+  useEffect(() => {
+    const loadOrders = () => {
+      const savedOrders = localStorage.getItem('orders');
+      if (savedOrders) {
+        const allOrders = JSON.parse(savedOrders);
+        const myOrders = allOrders.filter((order: Order) => order.driverId === driverId);
+        setOrders(myOrders);
+      }
+    };
+
+    loadOrders();
+
+    const handleStorageChange = () => {
+      loadOrders();
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    const interval = setInterval(loadOrders, 1000);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      clearInterval(interval);
+    };
+  }, [driverId]);
+
   const handleStartOrder = (orderId: string) => {
-    setOrders(orders.map(order => 
-      order.id === orderId ? { ...order, status: 'processing' as OrderStatus } : order
-    ));
+    const savedOrders = localStorage.getItem('orders');
+    if (savedOrders) {
+      const allOrders = JSON.parse(savedOrders);
+      const updatedOrders = allOrders.map((order: Order) => 
+        order.id === orderId ? { ...order, status: 'processing' as OrderStatus } : order
+      );
+      localStorage.setItem('orders', JSON.stringify(updatedOrders));
+      setOrders(orders.map(order => 
+        order.id === orderId ? { ...order, status: 'processing' as OrderStatus } : order
+      ));
+    }
   };
 
   const handleCompleteOrder = (orderId: string) => {
@@ -41,6 +70,15 @@ export default function DriverPortal({ driverId, driverName, onLogout }: DriverP
       const completedOrder = { ...order, status: 'delivered' as OrderStatus };
       setCompletedOrders([completedOrder, ...completedOrders]);
       setOrders(orders.filter(o => o.id !== orderId));
+      
+      const savedOrders = localStorage.getItem('orders');
+      if (savedOrders) {
+        const allOrders = JSON.parse(savedOrders);
+        const updatedOrders = allOrders.map((o: Order) => 
+          o.id === orderId ? completedOrder : o
+        );
+        localStorage.setItem('orders', JSON.stringify(updatedOrders));
+      }
     }
   };
 
