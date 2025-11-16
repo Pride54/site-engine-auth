@@ -96,7 +96,7 @@ export default function MapView({ selectedOrderId, selectedDriverId }: MapViewPr
 
     (window as any).ymaps.ready(() => {
       const map = new (window as any).ymaps.Map(mapRef.current, {
-        center: [55.751244, 37.618423],
+        center: [55.030204, 82.920430],
         zoom: 12,
         controls: ['zoomControl', 'fullscreenControl']
       });
