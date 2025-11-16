@@ -37,9 +37,88 @@ export default function MapView({ selectedOrderId, selectedDriverId }: MapViewPr
   const [selectedDriver, setSelectedDriver] = useState<Driver | null>(null);
   const driverPlacemarksRef = useRef<Map<string, any>>(new Map());
 
-  const demoOrders: Order[] = [];
+  const demoOrders: Order[] = [
+    {
+      id: '1247',
+      phone: '+7 913 123-45-67',
+      fromAddress: 'ул. Ленина, 52, Новосибирск',
+      toAddress: 'пр. Красный, 18, Новосибирск',
+      status: 'processing',
+      fromCoords: [55.030199, 82.920763],
+      toCoords: [55.041432, 82.934342]
+    },
+    {
+      id: '1248',
+      phone: '+7 913 234-56-78',
+      fromAddress: 'ул. Крылова, 36, Новосибирск',
+      toAddress: 'Вокзальная магистраль, 1, Новосибирск',
+      status: 'completed',
+      fromCoords: [55.028745, 82.907511],
+      toCoords: [55.049361, 82.913734]
+    },
+    {
+      id: '1249',
+      phone: '+7 913 345-67-89',
+      fromAddress: 'пр. Дзержинского, 24, Новосибирск',
+      toAddress: 'ул. Фрунзе, 5, Новосибирск',
+      status: 'pending',
+      fromCoords: [55.017893, 82.950123],
+      toCoords: [55.028956, 82.928734]
+    },
+    {
+      id: '1250',
+      phone: '+7 913 456-78-90',
+      fromAddress: 'ул. Станиславского, 18, Новосибирск',
+      toAddress: 'пр. Карла Маркса, 30, Новосибирск',
+      status: 'processing',
+      fromCoords: [55.042187, 82.918456],
+      toCoords: [55.032765, 82.915234]
+    },
+    {
+      id: '1251',
+      phone: '+7 913 567-89-01',
+      fromAddress: 'ул. Кирова, 86, Новосибирск',
+      toAddress: 'ул. Челюскинцев, 15, Новосибирск',
+      status: 'completed',
+      fromCoords: [55.024567, 82.912345],
+      toCoords: [55.038901, 82.945678]
+    }
+  ];
 
-  const demoDrivers: Driver[] = [];
+  const demoDrivers: Driver[] = [
+    {
+      id: 'driver-1',
+      name: 'Алексей',
+      coords: [55.035234, 82.925678],
+      status: 'active',
+      plateNumber: 'А123ВС154',
+      vehicle: 'Hyundai Solaris'
+    },
+    {
+      id: 'driver-2',
+      name: 'Дмитрий',
+      coords: [55.027890, 82.917345],
+      status: 'active',
+      plateNumber: 'В456КМ154',
+      vehicle: 'Kia Rio'
+    },
+    {
+      id: 'driver-3',
+      name: 'Сергей',
+      coords: [55.045123, 82.938901],
+      status: 'active',
+      plateNumber: 'С789НР154',
+      vehicle: 'Volkswagen Polo'
+    },
+    {
+      id: 'driver-4',
+      name: 'Михаил',
+      coords: [55.021456, 82.909234],
+      status: 'inactive',
+      plateNumber: 'Е012ТХ154',
+      vehicle: 'Renault Logan'
+    }
+  ];
 
   useEffect(() => {
     if (selectedOrderId) {
